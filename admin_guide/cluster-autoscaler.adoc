@@ -92,40 +92,40 @@ openshift_aws_subnet_az: us-east-1d <6>
 openshift_aws_create_security_groups: false <7>
 
 openshift_aws_ssh_key_name: production-ssh-key <8>
-na
+
 openshift_aws_base_ami: ami-12345678 <9>
 
 openshift_aws_create_s3: False <10>
 
 openshift_aws_build_ami_group: default <11>
 
-rhsub_user: name@example.com <12>
-rhsub_pass: password <13>
-rhsub_pool: pool-id <14>
-
-openshift_aws_vpc: <15>
+openshift_aws_vpc: <12>
   name: "{{ openshift_aws_vpc_name }}"
   cidr: 172.18.0.0/16
   subnets:
     us-east-1:
     - cidr: 172.18.0.0/20
       az: "us-east-1d"
+
+rhsub_user: user@example.com <1>
+rhsub_pass: password <2>
+rhsub_pool: pool-id <3>
 ----
 <1> The type of installment
 <2> The name of the existing OpenShift cluster
-<3> The region the cluster is currently running in
+<3> The region the existing cluster is currently running in
 <4> Disable the creation of a VPC
 <5> The existing VPC name that the cluster is running in
-<6> The name of the subnet the existing cluster is running in
+<6> The name of one subnet the existing cluster is running in
 <7> Disable the creation of security groups
 <8> The key name to use for SSH access
-<9> The base AMI (e.g., a RHEL 7 GA AMI)
+<9> The base AMI (e.g., a RHEL 7, or CentOS 7 AMI)
 <10> Disable the creation of an S3 bucket
 <11> what/why was this again? TODO(frobware)
-<12> Red Hat Subscription email address
-<13> Red Hat Subscription password
-<14> Red Hat Subscription Pool ID
-<15> The existing VPC subnets that the cluster is running in
+<12> The existing VPC subnets that the existing cluster is running in, and must include <6>
+<13> Red Hat subscription-manager email address
+<14> Red Hat subscription-manager password
+<15> Red Hat subscription-manager Pool ID
 
 . Run the AWS-specific playbook to generate a primed image
 +
@@ -139,4 +139,3 @@ ifdef::openshift-origin[]
 endif::[]
     -e @build-ami-provisioning-vars.yaml
 ----
-
