@@ -7,4 +7,235 @@
 
 .Procedure
 
+Once we have created the ASG and its associated LC we can deploy the
+auto-scaler components onto the cluster. We first need to decide on a
+namespace for these components as both the auto-scaler pod and your
+workload need to run in the same namespace.
 
+.Procedure
+. Create namespace
++
+[source,bash]
+----
+oc apply -f - <<EOF
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: autoscaler-demo
+EOF
+----
+
+. Create service account
++
+[source,shell]
+----
+oc apply -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    k8s-addon: cluster-autoscaler.addons.k8s.io
+    k8s-app: cluster-autoscaler
+  name: cluster-autoscaler
+  namespace: kube-system
+EOF
+----
+
+. Create cluster role
++
+[source,shell]
+----
+oc apply -n autoscaler-demo -f - <<EOF
+apiVersion: v1
+kind: ClusterRole
+metadata:
+  name: cluster-autoscaler
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - persistentvolumes
+  - pods
+  - replicationcontrollers
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  attributeRestrictions: null
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - create
+  attributeRestrictions: null
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+  attributeRestrictions: null
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+  attributeRestrictions: null
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - get
+  - list
+  - watch
+  attributeRestrictions: null
+EOF
+----
+
+. Create role
++
+[source,shell]
+----
+oc apply -n autoscaler-demo -f - <<EOF
+apiVersion: v1
+kind: Role
+metadata:
+  name: cluster-autoscaler
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  resourceNames:
+  - cluster-autoscaler
+  - cluster-autoscaler-status
+  verbs:
+  - create
+  - get
+  - patch
+  - update
+  attributeRestrictions: null
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  attributeRestrictions: null
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  attributeRestrictions: null
+EOF
+----
+
+. Create AWS *_creds_* file
++
+[source,shell]
+----
+cat <<EOF > creds
+[default]
+aws_access_key_id = your-aws-access-key-id
+aws_secret_access_key = your-aws-secret-accesskey
+EOF
+----
+
+. Create AWS secrets for deployment
++
+[source,shell]
+----
+oc create secret -n autoscaler-demo generic autoscaler-credentials --from-file=creds
+----
+
+. Grant cluster-reader policy to autoscaler serviceaccount
++
+[source,shell]
+----
+TODO(frobware)
+----
+
+. Create AWS secrets for deployment
++
+[source,shell]
+----
+oc create secret -n autoscaler-demo generic autoscaler-credentials --from-file=creds
+----
+
+. Create deployment
++
+[source,shell]
+----
+oc apply -n autoscaler-demo -f - <<EOF
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: cluster-autoscaler
+  name: cluster-autoscaler
+  namespace: openshift-autoscaler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cluster-autoscaler
+      role: infra
+  template:
+    metadata:
+      labels:
+	app: cluster-autoscaler
+	role: infra
+    spec:
+      containers:
+      - args:
+	- /bin/cluster-autoscaler
+	- --alsologtostderr
+	- --v=4
+	- --skip-nodes-with-local-storage=False
+	- --leader-elect-resource-lock=configmaps
+	- --namespace=openshift-autoscaler
+	- --cloud-provider=aws
+	- --nodes=0:6:mycluster-ASG
+	env:
+	- name: AWS_REGION
+	  value: us-east-1
+	- name: AWS_SHARED_CREDENTIALS_FILE
+	  value: /var/run/secrets/aws-creds/creds
+	image: registry.reg-aws.openshift.com:443/openshift3/ose-cluster-autoscaler:v3.11.0
+	name: autoscaler
+	volumeMounts:
+	- mountPath: /var/run/secrets/aws-creds
+	  name: aws-creds
+	  readOnly: true
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+	node-role.kubernetes.io/infra: "true"
+      serviceAccountName: cluster-autoscaler
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: aws-creds
+	secret:
+	  defaultMode: 420
+	  secretName: autoscaler-credentials
+EOF
+----
