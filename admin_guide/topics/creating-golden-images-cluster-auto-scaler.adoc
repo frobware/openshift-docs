@@ -103,4 +103,6 @@ endif::[]
     -e @build-ami-provisioning-vars.yaml
 ----
 
-
+Once this completes the image (AMI ID) that is generated can be used
+when creating a LC. On completion, the output of the playbook
+identifies the AMI by id.
