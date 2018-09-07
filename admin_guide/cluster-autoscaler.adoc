@@ -12,37 +12,23 @@
 
 toc::[]
 
-You can configure an auto-scaler on your {product-title} cluster in Amazon Web
-Services (AWS) to ensure that
-enough nodes are active to run your pods and that the number of active nodes is
-proportional to current demand.
-
-[IMPORTANT]
-====
-The auto-scaler is a Technology Preview feature only.
-ifdef::openshift-enterprise[]
-Technology Preview features are not supported with Red Hat production service
-level agreements (SLAs), might not be functionally complete, and Red Hat does
-not recommend to use them for production. These features provide early access to
-upcoming product features, enabling customers to test functionality and provide
-feedback during the development process.
-
-For more information on Red Hat Technology Preview features support scope, see
-https://access.redhat.com/support/offerings/techpreview/.
-endif::[]
-====
+You can configure an auto-scaler on your {product-title} cluster in
+Amazon Web Services (AWS) to provide elasticity for yor application
+workload. The auto-scaler ensures that enough nodes are active to run
+your pods and that the number of active nodes is proportional to
+current demand.
 
 [NOTE]
 ====
-You can run the auto-scaler on only Amazon Web Services (AWS).
+You can run the auto-scaler only on Amazon Web Services (AWS).
 ====
 
 include::admin_guide/topics/about-cluster-auto-scaler.adoc[leveloffset=+1]
 
-include::admin_guide/topics/creating-LC-and-ASG-cluster-auto-scaler.adoc[leveloffset=+2]
+include::admin_guide/topics/creating-LC-and-ASG-cluster-auto-scaler.adoc[leveloffset=+1]
 
-include::admin_guide/topics/deploying-cluster-auto-scaler.adoc[leveloffset=+2]
+include::admin_guide/topics/deploying-cluster-auto-scaler.adoc[leveloffset=+1]
 
-include::admin_guide/topics/testing-auto-scaler.adoc[leveloffset=+2]
+include::admin_guide/topics/testing-auto-scaler.adoc[leveloffset=+1]
 
-include::admin_guide/topics/creating-golden-images-cluster-auto-scaler.adoc[leveloffset=+2]
+include::admin_guide/topics/creating-golden-images-cluster-auto-scaler.adoc[leveloffset=+1]
