@@ -18,7 +18,7 @@ OpenShift node will automatically join the existing cluster.
 +
 [source,bash]
 ----
-$ ssh master-ip "sudo cat /etc/origin/master/bootstrap.kubeconfig" > ~/bootstrap.kubeconfig
+$ ssh master "sudo cat /etc/origin/master/bootstrap.kubeconfig" > ~/bootstrap.kubeconfig
 ----
 
 . Encode bootstrap.kubeconfig
@@ -49,8 +49,12 @@ write_files:
   owner: 'root:root'
   permissions: '0640'
   encoding: b64
-  content: |
-    <replace with base64 content from previous step> <1>
+  content: | <1>
+    djEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIGNlcnRpZmljYXRlLWF1dGhv...
+    UzB0TFMxQ1JVZEpUaUJEUlZKVVNVWkpRMEZVUlMwdExTMHRDazFKU1VNMmFr...
+    SkJaMGxDUVZSQlRrSm5hM0ZvYTJsSE9YY3dRa0ZSYzBaQlJFRnRUVk5SZDBs...
+    MGRtTkhWblVLWXpKb2NGcHVVWFJqTW14dVltMVdlVkZFUlRGTmVsbDVUWHBy...
+    VFZSbmQwOVVRVEpOVkUxNFQwUlZNRmRvWTA1TmFrMTNUMVJCTVFwTlZFMTRU...
 
 runcmd:
 - [ ansible-playbook, /root/openshift_bootstrap/bootstrap.yml]
@@ -84,7 +88,7 @@ aws autoscaling create-launch-configuration \
 <6> The cloud-init user-data stanza
 <7> The SSH key-pair name
 <8> Associate a public IP address, optional
-<9> The devices to attach to the image; these can be identified from the AMI image in the AWS console
+<9> The devices to attach to the image; these can be identified from the AMI image (e.g., ami-987654321) in the AWS console
 
 . Create the Auto Scale Group using the AWS CLI
 +
@@ -100,8 +104,8 @@ $ aws autoscaling create-auto-scaling-group \
 ----
 <1> the name of the ASG, used later when running the deployment
 <2> the name of the LC, as created in the previous step
-<3> the minimum number of nodes
-<4> the maximum number of nodes
+<3> the minimum number of nodes the scale group should maintain
+<4> the maximum number of nodes the scale group can expand to
 <5> the VPC subnet-id, this is the same subnet the cluster is using
 <6> ensure that ASG tags are propagated to the nodes when they launch
 
