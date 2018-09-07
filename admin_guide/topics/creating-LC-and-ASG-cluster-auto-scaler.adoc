@@ -1,0 +1,107 @@
+// Module included in the following assemblies:
+//
+// * admin_guide/cluster-autoscaler.adoc
+
+[id='creating-LC-and-ASG-cluster-auto-scaler-{context}']
+= Creating Launch Configuration and Auto Scale Group
+
+Before we can run the cluster-autoscaler deployment we need to create
+a LC and an ASG that reference a primed image; if you don't already
+have a primed image you can create one with XXX TODO(frobware).
+
+The LC that we create must be setup so that on first boot the new
+OpenShift node will automatically join the existing cluster.
+
+.Procedure
+
+. Copy the bootstrap.kubeconfig file from the master node
++
+[source,bash]
+----
+$ ssh master-ip "sudo cat /etc/origin/master/bootstrap.kubeconfig" > ~/bootstrap.kubeconfig
+----
+
+. Encode bootstrap.kubeconfig
++
+[source,bash]
+----
+$ base64 ~/bootstrap-kubeconfig 
+djEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIGNlcnRpZmljYXRlLWF1dGhv...
+UzB0TFMxQ1JVZEpUaUJEUlZKVVNVWkpRMEZVUlMwdExTMHRDazFKU1VNMmFr...
+SkJaMGxDUVZSQlRrSm5hM0ZvYTJsSE9YY3dRa0ZSYzBaQlJFRnRUVk5SZDBs...
+MGRtTkhWblVLWXpKb2NGcHVVWFJqTW14dVltMVdlVkZFUlRGTmVsbDVUWHBy...
+VFZSbmQwOVVRVEpOVkUxNFQwUlZNRmRvWTA1TmFrMTNUMVJCTVFwTlZFMTRU...
+...
+----
+
+. Create cloud-init stanza (user-data.txt)
++
+[source]
+----
+#cloud-config
+write_files:
+- path: /root/openshift_bootstrap/openshift_settings.yaml
+  owner: 'root:root'
+  permissions: '0640'
+  content: |
+    openshift_node_config_name: node-config-compute 
+- path: /etc/origin/node/bootstrap.kubeconfig
+  owner: 'root:root'
+  permissions: '0640'
+  encoding: b64
+  content: |
+    <replace with base64 content from previous step> <1>
+
+runcmd:
+- [ ansible-playbook, /root/openshift_bootstrap/bootstrap.yml]
+- [ systemctl, restart, systemd-hostnamed]
+- [ systemctl, restart, NetworkManager]
+- [ systemctl, enable, atomic-openshift-node]
+- [ systemctl, start, atomic-openshift-node]
+----
+<1> This content should be the complete content from the base64 encoding in the previous step
+
+. Create the Launch Configuration using the AWS CLI
++
+[source,bash]
+----
+aws autoscaling create-launch-configuration \
+    --launch-configuration-name mycluster-LC \ <1>
+    --region us-east-1 \ <2>
+    --image-id ami-987654321 \ <3>
+    --instance-type m4.large \ <4>
+    --security-groups sg-12345678 \ <5>
+    --user-data file://user-data.txt \ <6>
+    --key-name production-key \ <7>
+    --associate-public-ip-address \ <8>
+    --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"SnapshotId\":\"snap-0452f201667751583\"}},{\"DeviceName\":\"/dev/sdb\",\"Ebs\":{\"SnapshotId\":\"snap-09158677d56f88ca7\"}}]" <9>
+----
+<1> The name of the Launch Configuration
+<2> The region to launch the image in
+<3> The primed image AMI
+<4> The type of instance to launch
+<5> The security groups to attach to the launched image
+<6> The cloud-init user-data stanza
+<7> The SSH key-pair name
+<8> Associate a public IP address, optional
+<9> The devices to attach to the image; these can be identified from the AMI image in the AWS console
+
+. Create the Auto Scale Group using the AWS CLI
++
+[source,bash]
+----
+$ aws autoscaling create-auto-scaling-group \
+      --auto-scaling-group-name mycluster-ASG \ <1>
+      --launch-configuration-name mycluster-LC \ <2>
+      --min-size 0 \ <3>
+      --max-size 6 \ <4>
+      --vpc-zone-identifier subnet-12345678 \ <5>
+      --tags ResourceId=mycluster-ASG,ResourceType=auto-scaling-group,Key=Name,Value=mycluster-ASG-node,PropagateAtLaunch=true ResourceId=mycluster-ASG,ResourceType=auto-scaling-group,Key=kubernetes.io/cluster/mycluster,Value=true,PropagateAtLaunch=true <6>
+----
+<1> the name of the ASG, used later when running the deployment
+<2> the name of the LC, as created in the previous step
+<3> the minimum number of nodes
+<4> the maximum number of nodes
+<5> the VPC subnet-id, this is the same subnet the cluster is using
+<6> ensure that ASG tags are propagated to the nodes when they launch
+

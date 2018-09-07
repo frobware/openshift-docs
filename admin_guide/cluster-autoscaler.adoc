@@ -39,6 +39,8 @@ You can run the auto-scaler on only Amazon Web Services (AWS).
 
 include::admin_guide/topics/about-cluster-auto-scaler.adoc[leveloffset=+1]
 
+include::admin_guide/topics/creating-LC-and-ASG-cluster-auto-scaler.adoc[leveloffset=+1]
+
 {product-title} Creating primed images::
 
 [NOTE]

@@ -1,0 +1,6 @@
+// Module included in the following assemblies:
+//
+// * admin_guide/cluster-autoscaler.adoc
+
+[id='deploying-cluster-auto-scaler-{context}']
+= Deploying autoscaler components
