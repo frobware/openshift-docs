@@ -8,9 +8,7 @@
 .Procedure
 
 Once we have created the ASG and its associated LC we can deploy the
-auto-scaler components onto the cluster. We first need to decide on a
-namespace for these components as both the auto-scaler pod and your
-workload need to run in the same namespace.
+auto-scaler components onto the cluster.
 
 .Procedure
 . Create namespace

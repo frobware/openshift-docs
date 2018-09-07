@@ -5,17 +5,17 @@
 [id='about-cluster-auto-scaler-{context}']
 = About the {product-title} auto-scaler
 
-The auto-scaler in {product-title} periodically, such as every
-30 seconds, checks to see how many pods are pending node allocation. If nodes
-are pending allocation and the auto-scaler has not met its maximum capacity,
-then new nodes are continuously provisioned to accommodate the current
-demand. When demand drops and fewer pods are required, the auto-scaler removes
+The auto-scaler in {product-title} repeatedly checks to see how many
+pods are pending node allocation. If nodes are pending allocation and
+the auto-scaler has not met its maximum capacity, then new nodes are
+continuously provisioned to accommodate the current demand. When
+demand drops and fewer pods are required, the auto-scaler removes
 unused nodes.
 
-In {product-title} version {product-version}, you can deploy the auto-scaler
-in only clouds that run on Amazon Web Services (AWS). The auto-scaler uses some
-standard AWS objects to manage your cluster size, including Auto Scaling groups
-and Launch Configurations.
+In {product-title} version {product-version}, you can deploy the
+auto-scaler only on Amazon Web Services (AWS). The auto-scaler uses
+some standard AWS objects to manage your cluster size, including Auto
+Scaling Groups (ASGs) and Launch Configurations (LCs).
 
 The auto-scaler uses the following assets:
 
@@ -35,5 +35,5 @@ one or more security groups; or subnets.
 {product-title} primed images::
 When the ASG provisions a new instance, the image that runs must have
 {product-name} already prepared. The ASG uses this image to both automatically
-bootstrap the node and enroll it within the cluster without manual
+bootstrap the node and enroll it within the cluster without any manual
 intervention.
