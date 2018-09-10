@@ -293,7 +293,10 @@ $ ssh ec2-54-174-243-105.compute-1.amazonaws.com
 
 # Remove the node's identity
 $ sudo bash
-# rm -rf /etc/origin/node/certificates /etc/origin/openvswitch/*
+# systemctl stop atomic-openshift-node
+# rm -rf /etc/origin/node/certificates
+# rm -rf /etc/origin/openvswitch/*
+# rm -rf /var/lib/cloud
 ----
 
 .Create a new image, having "purified" it
