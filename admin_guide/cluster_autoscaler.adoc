@@ -321,7 +321,7 @@ an existing pre-prepared "golden" image or the AMI
 
 [source,bash]
 ----
-$ aws autoscaling create-launch-configuration
+$ aws autoscaling create-launch-configuration \
       --launch-configuration-name ${CLUSTER_ID}-LC \
       --image-id ami-01785f295539e6441 \
       --instance-type m4.large \
